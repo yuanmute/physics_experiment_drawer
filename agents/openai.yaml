@@ -1,0 +1,4 @@
+interface:
+  display_name: "Physics Lab Plotter"
+  short_description: "Build physics data tables and fitted PDF plots"
+  default_prompt: "Use $physics-lab-plotter to turn my experiment data into a checked table and fitting PDF."
