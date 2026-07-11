@@ -1,11 +1,16 @@
 ---
 name: physics-lab-plotter
-description: Convert physics-lab data supplied as photos, screenshots, TXT, CSV, spreadsheets, or typed values into checked experimental-data tables and Origin-style fitted curves. Use for transcribing measurements, making numbered tables with quantities and units, fitting two user-selected variables with linear or supplied-formula models, refining graph appearance, and delivering LaTeX-compiled PDF reports.
+description: Portable Agent Skills workflow for Codex, Claude Code, Cursor, WorkBuddy, and compatible clients. Convert physics-lab data from photos, screenshots, TXT, CSV, spreadsheets, or typed values into checked tables and Origin-style fitted curves. Use for transcription, unit-aware tables, confirmed linear or supplied-formula fits, graph refinement, and LaTeX PDF reports.
+license: MIT
 ---
 
 # Physics Lab Plotter
 
 Create source-faithful experimental tables first, then fit only after the user confirms the transcription. Default to Chinese output and a LaTeX-compiled PDF unless the user requests another format.
+
+## Cross-client portability
+
+Treat this folder as a portable Agent Skills package. Keep `SKILL.md`, `references/`, and `scripts/` together when installing it. Place the folder at the client-specific skill directory described in [platforms.md](references/platforms.md); do not rewrite the core instructions for a particular model. `agents/openai.yaml` is optional Codex UI metadata and can be ignored by other clients.
 
 ## Workflow
 
