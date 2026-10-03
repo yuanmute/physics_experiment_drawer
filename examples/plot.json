@@ -1,0 +1,17 @@
+{
+  "table_caption": "合成示例数据",
+  "columns": [
+    {"key": "time", "label": "$t$", "unit": "$\\mathrm{s}$"},
+    {"key": "displacement", "label": "$x$", "unit": "$\\mathrm{cm}$"},
+    {"key": "sigma", "label": "$\\sigma_x$", "unit": "$\\mathrm{cm}$"}
+  ],
+  "fit": {
+    "x": "time",
+    "y": "displacement",
+    "x_label": "$t\\,/\\,\\mathrm{s}$",
+    "y_label": "$x\\,/\\,\\mathrm{cm}$",
+    "model": "linear",
+    "sigma_key": "sigma",
+    "result_position": "right"
+  }
+}

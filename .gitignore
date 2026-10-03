@@ -1,0 +1,22 @@
+# Private measurements and generated artifacts belong in these directories.
+/data/
+/private/
+/output/
+/outputs/
+/work/
+/.local/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.aux
+*.log
+*.out
+*.xdv
+*.synctex.gz
+*.fls
+*.fdb_latexmk

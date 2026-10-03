@@ -1,91 +1,63 @@
 # Physics Lab Plotter
 
-<p align="center"><a href="README.md">中文文档</a></p>
+[中文文档](README.md)
 
-`physics-lab-plotter` is an Agent Skills-compatible workflow for physics experiment data tables and fitting plots. It can be used with Codex, Claude Code, Cursor, WorkBuddy, and other clients that support the open `SKILL.md` format.
+`physics-lab-plotter` organizes user-supplied physics experiment images, text, CSV, spreadsheets or typed measurements into faithful tables, fitted curves and local PDFs.
 
-## Capabilities
+## Capabilities and scope
 
-- Organize measurements from experiment photos, screenshots, TXT, CSV, spreadsheets, or typed values.
-- Build a numbered, unit-aware record table and wait for user confirmation before fitting.
-- Fit two selected variables with ordinary linear least squares or a supplied nonlinear formula.
-- Draw scatter points, fitted curves, legends, and a compact statistics panel beside the graph.
-- Compile a PDF with XeLaTeX by default and revise ranges, labels, curves, and layout on request.
+- One data group, linear/nonlinear formula fitting, and theoretical curves with fixed constants.
+- Relative weights, known absolute y standard deviations, parameter bounds and explicit fit status.
+- Axis ranges, positive log axes, colors, markers, line widths, legends and a statistics panel outside the plot.
+- Original decimal spelling is preserved by default. Nonfinite values, duplicate headers, malformed rows and unknown configuration fields are errors.
+- Confirm uncertain image transcription; reuse confirmed data and proceed when a clear structured input already carries explicit fitting authorization.
 
-The statistics panel reports the equation, plotted quantity, weighting, sample count, parameter estimates and standard errors, residual sum of squares, RMSE, Pearson correlation, R² (COD), and adjusted R². Theory curves also report fixed constants and experimental-versus-theory R².
+The statistics panel reports parameters and standard errors, fixed constants, status, sample size, degrees of freedom, SSE, RMSE, residual standard error, Pearson r, weighted/unweighted R² and adjusted R² where defined. RMSE is `sqrt(SSE/n)`; residual standard error is `sqrt(SSE/(n-p))`.
 
-## Cross-client installation
+Shared multi-group parameters, x-error fitting, error bars, confidence bands, residual panels and arbitrary multi-panel layouts require another suitable plotting tool; they are not bundled helper options.
 
-The canonical entry point is the same `SKILL.md` file everywhere. Put the entire repository directory into the client’s skill directory; do not copy only the script.
+## Installation and invocation
 
-| Client | Project directory | User directory | Invocation |
-| --- | --- | --- | --- |
-| Codex | `.agents/skills/physics-lab-plotter/` | `~/.agents/skills/physics-lab-plotter/`; the legacy local path `~/.codex/skills/physics-lab-plotter/` also works in this setup | `$physics-lab-plotter` |
-| Claude Code | `.claude/skills/physics-lab-plotter/` | `~/.claude/skills/physics-lab-plotter/` | `/physics-lab-plotter` |
-| Cursor | `.cursor/skills/physics-lab-plotter/` | `~/.cursor/skills/physics-lab-plotter/` | Automatic selection or `/physics-lab-plotter` |
-| WorkBuddy | `.claude/skills/physics-lab-plotter/` | `~/.claude/skills/physics-lab-plotter/` | `/physics-lab-plotter` |
-
-WorkBuddy uses the Claude Code skill entry point. If your WorkBuddy release exposes a separate skill directory, install this same repository directory there; the root `SKILL.md` remains the portable contract. See [references/platforms.md](references/platforms.md) for details.
-
-## Invocation examples
-
-First request a record table and explicitly defer fitting:
+Install the complete repository under the name `physics-lab-plotter`, for example:
 
 ```text
-$physics-lab-plotter Build a record table from my uploaded experiment image; do not fit yet.
+git clone https://github.com/yuanmute/physics_experiment_drawer.git .agents/skills/physics-lab-plotter
 ```
 
-After confirming the table, specify the variables and model:
+See [platforms.md](references/platforms.md) for client directories and version caveats. Agent Skills compatibility is not a claim that all client releases have been tested.
 
 ```text
-$physics-lab-plotter The table is confirmed. Fit x against t with y=a+b*x and produce the PDF.
+$physics-lab-plotter Build a table from these experiment images and flag unclear digits; do not fit yet.
+$physics-lab-plotter The table is confirmed. Use t as horizontal and x as vertical, fit a line and generate a PDF.
 ```
 
 ## Local generator
 
-The generator uses only the Python standard library. PDF compilation requires `xelatex`. See [references/input-schema.md](references/input-schema.md) for the CSV and JSON schema.
+Requires Python 3.10+ and XeLaTeX with ctex/Fandol, amsmath, amssymb, booktabs, longtable, TikZ and PGFPlots. The Python helper uses only the standard library.
 
-```powershell
-python scripts/make_lab_pdf.py `
-  --data measurements.csv `
-  --config plot.json `
-  --stage table `
-  --output-dir output
-```
-
-After the user confirms the table:
-
-```powershell
-python scripts/make_lab_pdf.py `
-  --data measurements.csv `
-  --config plot.json `
-  --stage fit `
-  --output-dir output
-```
-
-Use `--no-compile` when only the TeX source is needed. Formula fitting accepts `+ - * / **`, parentheses, and common math functions; every fitted parameter must have an initial value in JSON `parameters`. The generator never silently drops, smooths, overrides, or fabricates measurements.
-
-## Repository layout
+Run the public synthetic example from the repository root:
 
 ```text
-physics-lab-plotter/
-├── SKILL.md
-├── README.md                 # Chinese entry
-├── README.en.md              # English entry
-├── LICENSE                   # MIT
-├── agents/openai.yaml        # Codex UI metadata
-├── references/
-│   ├── input-schema.md
-│   └── platforms.md
-└── scripts/make_lab_pdf.py
+python scripts/make_lab_pdf.py --data examples/measurements.csv --config examples/plot.json --stage table --output-dir output
+python scripts/make_lab_pdf.py --data examples/measurements.csv --config examples/plot.json --stage fit --output-dir output
 ```
 
-## Format references
+For real work invoke the installed helper by its absolute path and keep inputs/outputs in the user's workspace. See [input-schema.md](references/input-schema.md). `--no-compile` creates TeX only; `--keep-build-files` preserves local diagnostic logs. Compilation failure preserves source and does not leave a stale same-name PDF presented as updated output.
 
-- [Agent Skills specification](https://agentskills.io/specification)
-- [Codex skills](https://developers.openai.com/codex/skills)
-- [Claude Code skills](https://code.claude.com/docs/en/skills)
-- [Cursor Agent Skills](https://cursor.com/docs/context/skills)
-- [WorkBuddy documentation](https://docs.work-buddy.ai/)
+## Privacy
 
-This project is released under the MIT License; see [LICENSE](LICENSE).
+The helper makes no network requests, scans no unrelated directories and reads no credentials. Ordinary display strings are escaped; mathematical labels use a restricted command vocabulary. Arbitrary TeX is unsupported. Generated source is compiled alone in a fresh temporary directory with shell escape disabled; temporary build artifacts are removed by default. A temporary directory is not an operating-system sandbox.
+
+Chat/image-recognition services may process supplied material in the cloud according to the client's settings. Do not copy irrelevant names, student IDs or other identity details into outputs. Put private inputs in `data/` or `private/` and generated files in `output/`; these directories are Git-ignored. `examples/` contains synthetic public data only.
+
+Contributors can use GitHub's private commit email. Changing future commit email does not remove existing history, caches, clones or forks. Keep credentials and personal material out of commits.
+
+## Validation
+
+```text
+python -m unittest discover -s tests -v
+```
+
+With XeLaTeX installed, set `RUN_LATEX_TESTS=1` before running to check actual PDFs for scientific notation, fits and theory curves. In Windows PowerShell use `$env:RUN_LATEX_TESTS = '1'`.
+
+The entry point is [SKILL.md](SKILL.md). Released under the [MIT License](LICENSE).

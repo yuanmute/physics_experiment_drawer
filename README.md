@@ -1,91 +1,63 @@
 # Physics Lab Plotter
 
-<p align="center"><a href="README.en.md">English documentation</a></p>
+[English documentation](README.en.md)
 
-`physics-lab-plotter` 是一个遵循 Agent Skills 开放格式的物理实验数据记录与拟合绘图技能，可用于 Codex、Claude Code、Cursor、WorkBuddy 及其他兼容客户端。
+`physics-lab-plotter` 是物理实验数据记录与拟合绘图技能。它整理用户提供的照片、截图、TXT、CSV、表格或手工数据，保留测量值和单位，生成记录表、拟合曲线与本地 PDF。
 
-## 能力
+## 能力与边界
 
-- 从实验数据照片、截图、TXT、CSV、表格或手工录入值中整理数据。
-- 先生成带序号、物理量、单位和数值的记录表，等待用户确认后再拟合。
-- 支持线性拟合和用户给定公式的非线性拟合。
-- 生成散点、拟合曲线、图例和图旁统计小表。
-- 默认使用 XeLaTeX 编译 PDF，并可按反馈修改坐标范围、标注、曲线和版式。
+- 支持单组线性拟合、给定公式的非线性拟合，以及包含固定常量的理论曲线。
+- 支持相对权重、已知 y 测量标准差、参数上下界和明确的求解状态。
+- 支持轴范围、对数轴、颜色、标记、线宽、图例，以及位于图外的统计表。
+- 原始小数写法默认保留；非有限值、重复表头、缺失数据和未知配置会报错。
+- 图片转录不明确时先确认；已经确认的数据或明确授权拟合的清晰 CSV 不重复等待确认。
 
-统计小表包含：方程、绘图量、权重、样本数、拟合参数及标准误差、残差平方和、RMSE、Pearson 相关系数、R²（COD）和调整后 R²。理论曲线还记录固定常量和实验—理论 R²。
+统计表包含参数与标准误差、固定常量、求解状态、样本数、自由度、SSE、RMSE、残差标准误、Pearson r、加权与未加权 R²，以及适用时的调整后 R²。RMSE 与残差标准误的定义分别是 `sqrt(SSE/n)` 与 `sqrt(SSE/(n-p))`。
 
-## 跨平台安装
+多组共享参数、x 误差拟合、误差棒、置信带、残差面板和任意多面板布局需要其他合适绘图工具；本地生成器没有这些配置入口。
 
-核心入口始终是同一个 `SKILL.md` 文件。将整个仓库目录放入对应客户端的技能目录，不要只复制脚本。
+## 安装与调用
 
-| 客户端 | 项目级目录 | 用户级目录 | 调用方式 |
-| --- | --- | --- | --- |
-| Codex | `.agents/skills/physics-lab-plotter/` | `~/.agents/skills/physics-lab-plotter/`；本机旧版也可使用 `~/.codex/skills/physics-lab-plotter/` | `$physics-lab-plotter` |
-| Claude Code | `.claude/skills/physics-lab-plotter/` | `~/.claude/skills/physics-lab-plotter/` | `/physics-lab-plotter` |
-| Cursor | `.cursor/skills/physics-lab-plotter/` | `~/.cursor/skills/physics-lab-plotter/` | Agent 自动选择或 `/physics-lab-plotter` |
-| WorkBuddy | `.claude/skills/physics-lab-plotter/` | `~/.claude/skills/physics-lab-plotter/` | `/physics-lab-plotter` |
-
-WorkBuddy 的技能入口沿用 Claude Code 目录；如果你的 WorkBuddy 版本提供了独立技能目录，仍应把同一仓库目录作为技能包安装。平台细节见 [references/platforms.md](references/platforms.md)。
-
-## 调用示例
-
-先要求记录表，不要立即拟合：
+将完整仓库安装为 `physics-lab-plotter` 文件夹，例如：
 
 ```text
-$physics-lab-plotter 根据我上传的实验数据图片先生成记录表，暂时不要拟合。
+git clone https://github.com/yuanmute/physics_experiment_drawer.git .agents/skills/physics-lab-plotter
 ```
 
-表格确认后再指定变量和模型：
+其他客户端目录与版本注意事项见 [platforms.md](references/platforms.md)。支持 Agent Skills 不代表所有客户端版本已测试。
 
 ```text
-$physics-lab-plotter 表格已确认。请用 t 拟合 x，模型为 y=a+b*x，并生成 PDF。
+$physics-lab-plotter 根据实验图片先生成记录表，标出不清楚的数字，暂时不要拟合。
+$physics-lab-plotter 表格已确认。以 t 为横轴、x 为纵轴，做线性拟合并生成 PDF。
 ```
 
-## 本地生成器
+## 本地运行
 
-生成器只使用 Python 标准库；PDF 编译需要 `xelatex`。输入格式见 [references/input-schema.md](references/input-schema.md)。
+需要 Python 3.10+ 和 XeLaTeX，后者需包含 ctex/Fandol、amsmath、amssymb、booktabs、longtable、TikZ 与 PGFPlots。Python 代码仅使用标准库。
 
-```powershell
-python scripts/make_lab_pdf.py `
-  --data measurements.csv `
-  --config plot.json `
-  --stage table `
-  --output-dir output
-```
-
-用户确认表格后运行：
-
-```powershell
-python scripts/make_lab_pdf.py `
-  --data measurements.csv `
-  --config plot.json `
-  --stage fit `
-  --output-dir output
-```
-
-只需要 TeX 源文件时增加 `--no-compile`。公式拟合支持 `+ - * / **`、括号和常用数学函数；所有拟合参数必须在 JSON 的 `parameters` 中提供初值。生成器不会静默删除、平滑、覆盖或捏造实验数据。
-
-## 目录结构
+在仓库根目录运行公开的合成示例：
 
 ```text
-physics-lab-plotter/
-├── SKILL.md
-├── README.md                 # 中文入口
-├── README.en.md              # English entry
-├── LICENSE                   # MIT
-├── agents/openai.yaml        # Codex UI metadata
-├── references/
-│   ├── input-schema.md
-│   └── platforms.md
-└── scripts/make_lab_pdf.py
+python scripts/make_lab_pdf.py --data examples/measurements.csv --config examples/plot.json --stage table --output-dir output
+python scripts/make_lab_pdf.py --data examples/measurements.csv --config examples/plot.json --stage fit --output-dir output
 ```
 
-## 参考格式
+实际使用时，通过技能安装目录的绝对路径调用脚本，把输入与输出留在用户工作区。CSV/JSON 协议见 [input-schema.md](references/input-schema.md)。`--no-compile` 只生成 TeX；`--keep-build-files` 保留本地诊断日志。编译失败会保留源码，并避免旧 PDF 被误当成新结果。
 
-- [Agent Skills specification](https://agentskills.io/specification)
-- [Codex skills](https://developers.openai.com/codex/skills)
-- [Claude Code skills](https://code.claude.com/docs/en/skills)
-- [Cursor Agent Skills](https://cursor.com/docs/context/skills)
-- [WorkBuddy documentation](https://docs.work-buddy.ai/)
+## 隐私
 
-本项目采用 MIT License，详见 [LICENSE](LICENSE)。
+生成器没有网络请求，不扫描其他目录或读取凭证。普通文字自动转义，数学标注只接受受限命令；不接受任意 TeX。生成的源码在新建临时目录编译，并关闭 shell escape，临时编译文件默认清理。临时目录本身不是操作系统沙箱。
+
+聊天客户端或图片识别服务可能处理云端数据，这由所用客户端的设置决定。不要把不相关的姓名、学号或身份信息带入成果。私人输入放入 `data/` 或 `private/`，生成文件放入 `output/`；这些目录已被 Git 忽略。`examples/` 仅包含合成公开数据。
+
+提交者可使用 GitHub 的隐私邮箱。更换后续提交邮箱不会自动清除旧历史、缓存、已有克隆或 fork；不要把凭证或个人材料放进提交。
+
+## 验证
+
+```text
+python -m unittest discover -s tests -v
+```
+
+安装 XeLaTeX 后，设置环境变量 `RUN_LATEX_TESTS=1` 再运行，检查科学计数法、拟合与理论曲线的实际 PDF 输出。Windows PowerShell 可先执行 `$env:RUN_LATEX_TESTS = '1'`。
+
+核心入口为 [SKILL.md](SKILL.md)；采用 [MIT License](LICENSE)。
